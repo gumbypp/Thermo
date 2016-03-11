@@ -1,0 +1,398 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6824B1BF1C8EAA7C00D505CA /* ble_start@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6824B1BE1C8EAA7C00D505CA /* ble_start@2x.png */; };
+		6824B1C21C8EB19D00D505CA /* ble_cancel@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6824B1C01C8EB19D00D505CA /* ble_cancel@2x.png */; };
+		6824B1C31C8EB19D00D505CA /* ble_end@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6824B1C11C8EB19D00D505CA /* ble_end@2x.png */; };
+		6842C98A1C82365E00F7CD68 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6842C9891C82365E00F7CD68 /* Default-568h@2x.png */; };
+		6863B3181C6C37FF00925EFC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6863B3171C6C37FF00925EFC /* main.m */; };
+		6863B31B1C6C37FF00925EFC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6863B31A1C6C37FF00925EFC /* AppDelegate.m */; };
+		6863B31E1C6C37FF00925EFC /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6863B31D1C6C37FF00925EFC /* MainViewController.m */; };
+		6863B3211C6C37FF00925EFC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6863B31F1C6C37FF00925EFC /* Main.storyboard */; };
+		6863B3231C6C37FF00925EFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6863B3221C6C37FF00925EFC /* Assets.xcassets */; };
+		6863B3261C6C37FF00925EFC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6863B3241C6C37FF00925EFC /* LaunchScreen.storyboard */; };
+		689122621C6C38CC0026C5A0 /* BLE.m in Sources */ = {isa = PBXBuildFile; fileRef = 689122601C6C38CC0026C5A0 /* BLE.m */; };
+		689122661C6C38DC0026C5A0 /* MD5.c in Sources */ = {isa = PBXBuildFile; fileRef = 689122641C6C38DC0026C5A0 /* MD5.c */; };
+		689122691C6C39090026C5A0 /* common.m in Sources */ = {isa = PBXBuildFile; fileRef = 689122681C6C39090026C5A0 /* common.m */; };
+		68AD83961C82E71B00FA77B3 /* dial@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 68AD83951C82E71B00FA77B3 /* dial@2x.png */; };
+		68AD839A1C84013B00FA77B3 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 68AD83991C84013B00FA77B3 /* MBProgressHUD.m */; };
+		68AD839C1C842A2E00FA77B3 /* schedule@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 68AD839B1C842A2E00FA77B3 /* schedule@2x.png */; };
+		68BA5C1A1C75A63B00710C0D /* ScheduleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 68BA5C191C75A63B00710C0D /* ScheduleViewController.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		6824B1BE1C8EAA7C00D505CA /* ble_start@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ble_start@2x.png"; sourceTree = "<group>"; };
+		6824B1C01C8EB19D00D505CA /* ble_cancel@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ble_cancel@2x.png"; sourceTree = "<group>"; };
+		6824B1C11C8EB19D00D505CA /* ble_end@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ble_end@2x.png"; sourceTree = "<group>"; };
+		6842C9891C82365E00F7CD68 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		6863B3131C6C37FF00925EFC /* Thermo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Thermo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6863B3171C6C37FF00925EFC /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6863B3191C6C37FF00925EFC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		6863B31A1C6C37FF00925EFC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		6863B31C1C6C37FF00925EFC /* MainViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		6863B31D1C6C37FF00925EFC /* MainViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		6863B3201C6C37FF00925EFC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		6863B3221C6C37FF00925EFC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6863B3251C6C37FF00925EFC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		6863B3271C6C37FF00925EFC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6891225F1C6C38CC0026C5A0 /* BLE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLE.h; sourceTree = "<group>"; };
+		689122601C6C38CC0026C5A0 /* BLE.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLE.m; sourceTree = "<group>"; };
+		689122611C6C38CC0026C5A0 /* BLEDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEDefines.h; sourceTree = "<group>"; };
+		689122641C6C38DC0026C5A0 /* MD5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MD5.c; sourceTree = "<group>"; };
+		689122651C6C38DC0026C5A0 /* MD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD5.h; sourceTree = "<group>"; };
+		689122671C6C39090026C5A0 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		689122681C6C39090026C5A0 /* common.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = common.m; sourceTree = "<group>"; };
+		6891226A1C6C3ACD0026C5A0 /* shared_key.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shared_key.h; sourceTree = "<group>"; };
+		6891226B1C6C3ACD0026C5A0 /* shared_protocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shared_protocol.h; sourceTree = "<group>"; };
+		68AD83921C82A9B900FA77B3 /* Thermo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Thermo-Prefix.pch"; sourceTree = "<group>"; };
+		68AD83951C82E71B00FA77B3 /* dial@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dial@2x.png"; sourceTree = "<group>"; };
+		68AD83981C84013B00FA77B3 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
+		68AD83991C84013B00FA77B3 /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		68AD839B1C842A2E00FA77B3 /* schedule@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "schedule@2x.png"; sourceTree = "<group>"; };
+		68BA5C181C75A63B00710C0D /* ScheduleViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScheduleViewController.h; sourceTree = "<group>"; };
+		68BA5C191C75A63B00710C0D /* ScheduleViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ScheduleViewController.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6863B3101C6C37FF00925EFC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		6863B30A1C6C37FF00925EFC = {
+			isa = PBXGroup;
+			children = (
+				6863B3151C6C37FF00925EFC /* Thermo */,
+				6863B3141C6C37FF00925EFC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6863B3141C6C37FF00925EFC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6863B3131C6C37FF00925EFC /* Thermo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6863B3151C6C37FF00925EFC /* Thermo */ = {
+			isa = PBXGroup;
+			children = (
+				68AD83971C84012B00FA77B3 /* MBProgressHUD */,
+				6891225E1C6C38CC0026C5A0 /* BLE */,
+				689122631C6C38DC0026C5A0 /* MD5 */,
+				689122671C6C39090026C5A0 /* common.h */,
+				689122681C6C39090026C5A0 /* common.m */,
+				6891226A1C6C3ACD0026C5A0 /* shared_key.h */,
+				6891226B1C6C3ACD0026C5A0 /* shared_protocol.h */,
+				6863B3191C6C37FF00925EFC /* AppDelegate.h */,
+				6863B31A1C6C37FF00925EFC /* AppDelegate.m */,
+				6863B31C1C6C37FF00925EFC /* MainViewController.h */,
+				6863B31D1C6C37FF00925EFC /* MainViewController.m */,
+				68BA5C181C75A63B00710C0D /* ScheduleViewController.h */,
+				68BA5C191C75A63B00710C0D /* ScheduleViewController.m */,
+				6863B31F1C6C37FF00925EFC /* Main.storyboard */,
+				6863B3221C6C37FF00925EFC /* Assets.xcassets */,
+				6863B3241C6C37FF00925EFC /* LaunchScreen.storyboard */,
+				6863B3271C6C37FF00925EFC /* Info.plist */,
+				6863B3161C6C37FF00925EFC /* Supporting Files */,
+			);
+			path = Thermo;
+			sourceTree = "<group>";
+		};
+		6863B3161C6C37FF00925EFC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				6842C9891C82365E00F7CD68 /* Default-568h@2x.png */,
+				6824B1BE1C8EAA7C00D505CA /* ble_start@2x.png */,
+				6824B1C01C8EB19D00D505CA /* ble_cancel@2x.png */,
+				6824B1C11C8EB19D00D505CA /* ble_end@2x.png */,
+				68AD83951C82E71B00FA77B3 /* dial@2x.png */,
+				68AD839B1C842A2E00FA77B3 /* schedule@2x.png */,
+				6863B3171C6C37FF00925EFC /* main.m */,
+				68AD83921C82A9B900FA77B3 /* Thermo-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		6891225E1C6C38CC0026C5A0 /* BLE */ = {
+			isa = PBXGroup;
+			children = (
+				6891225F1C6C38CC0026C5A0 /* BLE.h */,
+				689122601C6C38CC0026C5A0 /* BLE.m */,
+				689122611C6C38CC0026C5A0 /* BLEDefines.h */,
+			);
+			path = BLE;
+			sourceTree = "<group>";
+		};
+		689122631C6C38DC0026C5A0 /* MD5 */ = {
+			isa = PBXGroup;
+			children = (
+				689122641C6C38DC0026C5A0 /* MD5.c */,
+				689122651C6C38DC0026C5A0 /* MD5.h */,
+			);
+			path = MD5;
+			sourceTree = "<group>";
+		};
+		68AD83971C84012B00FA77B3 /* MBProgressHUD */ = {
+			isa = PBXGroup;
+			children = (
+				68AD83981C84013B00FA77B3 /* MBProgressHUD.h */,
+				68AD83991C84013B00FA77B3 /* MBProgressHUD.m */,
+			);
+			name = MBProgressHUD;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6863B3121C6C37FF00925EFC /* Thermo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6863B32A1C6C37FF00925EFC /* Build configuration list for PBXNativeTarget "Thermo" */;
+			buildPhases = (
+				6863B30F1C6C37FF00925EFC /* Sources */,
+				6863B3101C6C37FF00925EFC /* Frameworks */,
+				6863B3111C6C37FF00925EFC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Thermo;
+			productName = Thermo;
+			productReference = 6863B3131C6C37FF00925EFC /* Thermo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6863B30B1C6C37FF00925EFC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = "Dale Low";
+				TargetAttributes = {
+					6863B3121C6C37FF00925EFC = {
+						CreatedOnToolsVersion = 7.2;
+					};
+				};
+			};
+			buildConfigurationList = 6863B30E1C6C37FF00925EFC /* Build configuration list for PBXProject "Thermo" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6863B30A1C6C37FF00925EFC;
+			productRefGroup = 6863B3141C6C37FF00925EFC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6863B3121C6C37FF00925EFC /* Thermo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		6863B3111C6C37FF00925EFC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68AD839C1C842A2E00FA77B3 /* schedule@2x.png in Resources */,
+				6842C98A1C82365E00F7CD68 /* Default-568h@2x.png in Resources */,
+				6863B3261C6C37FF00925EFC /* LaunchScreen.storyboard in Resources */,
+				6863B3231C6C37FF00925EFC /* Assets.xcassets in Resources */,
+				6824B1C31C8EB19D00D505CA /* ble_end@2x.png in Resources */,
+				68AD83961C82E71B00FA77B3 /* dial@2x.png in Resources */,
+				6824B1BF1C8EAA7C00D505CA /* ble_start@2x.png in Resources */,
+				6824B1C21C8EB19D00D505CA /* ble_cancel@2x.png in Resources */,
+				6863B3211C6C37FF00925EFC /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6863B30F1C6C37FF00925EFC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6863B31E1C6C37FF00925EFC /* MainViewController.m in Sources */,
+				6863B31B1C6C37FF00925EFC /* AppDelegate.m in Sources */,
+				689122691C6C39090026C5A0 /* common.m in Sources */,
+				689122661C6C38DC0026C5A0 /* MD5.c in Sources */,
+				6863B3181C6C37FF00925EFC /* main.m in Sources */,
+				68BA5C1A1C75A63B00710C0D /* ScheduleViewController.m in Sources */,
+				689122621C6C38CC0026C5A0 /* BLE.m in Sources */,
+				68AD839A1C84013B00FA77B3 /* MBProgressHUD.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		6863B31F1C6C37FF00925EFC /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6863B3201C6C37FF00925EFC /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		6863B3241C6C37FF00925EFC /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				6863B3251C6C37FF00925EFC /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		6863B3281C6C37FF00925EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		6863B3291C6C37FF00925EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		6863B32B1C6C37FF00925EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Thermo/Thermo-Prefix.pch";
+				INFOPLIST_FILE = Thermo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gumbypp.Thermo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		6863B32C1C6C37FF00925EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Thermo/Thermo-Prefix.pch";
+				INFOPLIST_FILE = Thermo/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gumbypp.Thermo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		6863B30E1C6C37FF00925EFC /* Build configuration list for PBXProject "Thermo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6863B3281C6C37FF00925EFC /* Debug */,
+				6863B3291C6C37FF00925EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6863B32A1C6C37FF00925EFC /* Build configuration list for PBXNativeTarget "Thermo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6863B32B1C6C37FF00925EFC /* Debug */,
+				6863B32C1C6C37FF00925EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6863B30B1C6C37FF00925EFC /* Project object */;
+}
