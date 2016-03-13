@@ -41,7 +41,7 @@ The format of request messages from the iOS app to the Arduino is:
 [ ... signature ... ][cmd][seq][data len][ ... data ... ]
 ```
 
-* signature (8 bytes - 16-byte MD5 hash of the message payload and 8-byte encrytion key with the two parts XORed together)
+* signature (8 bytes - 16-byte MD5 hash of the message payload and 8-byte encryption key with the two parts XORed together)
 * command (1 byte) - kCmd* in ```shared_protocol.h```
 * sequence number (1 byte)
 * data length (1 byte)
@@ -80,7 +80,7 @@ Arduino libraries:
 
 To function, the normally open (NO) contacts of the main relay (K1) need to be connected in series between the millivolt output of the thermopile (in the pilot light of the gas furnace) and the solenoid of the gas control valve.
 
-To use the optional smoke alarm silencer, wire the normally closed (NC) contacts of the second relay (K2) in series betwen the smoke alarm and its battery (this will likely involve cutting a trace or power wire in the smoke detector).
+To use the optional smoke alarm silencer, wire the normally closed (NC) contacts of the second relay (K2) in series between the smoke alarm and its battery (this will likely involve cutting a trace or power wire in the smoke detector).
 
 ## Usage
 
