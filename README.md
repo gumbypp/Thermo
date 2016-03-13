@@ -1,5 +1,5 @@
 # Thermo
-Simple Bluetooth-controlled millivolt thermostat.
+Simple Bluetooth-controlled millivolt thermostat with optional smoke alarm silencer.
 
 Thermo is a simple app that demonstrates how you can program/control a millivolt thermostat using an Arduino and iOS app.
 
@@ -10,6 +10,7 @@ It has a few interesting features:
 * ability to set separate weekday and weekend schedules
 * LCD display showing the current state and physical manual override using two SPST switches
 * battery backed-up real-time clock and EEPROM to preserve the time and schedules when disconnected from power
+* optional smoke alarm silencer feature for houses with smoke alarms right beside the kitchen
 
 ## Hardware required
 * [Arduino Uno](http://arduino.cc/en/Main/arduinoBoardUno) (it will probably work with other variants, but I've only tested it with the Uno)
@@ -32,7 +33,7 @@ Here's the setup in my hall:
 
 ## Communications
 
-Communications from the iOS app to the Arduino is facilitated by the simple Tx/Rx interface exposed by the BLE Mini. Since the BLE mini is connected to digital pins 0 and 1 of the Arduino, serial port debugging is not possible when BLE comms are enabled. Similarly, you need to disconnect the BLE Mini from the Arduino when programming it via the USB cable.
+Communications from the iOS app to the Arduino is facilitated by the simple Tx/Rx interface exposed by the BLE Mini. Since the BLE mini is connected to digital pins 0 and 1 of the Arduino, serial port console output is not available when BLE comms are enabled. Similarly, you need to disconnect the BLE Mini from the Arduino when programming it via the USB cable.
 
 The format of request messages from the iOS app to the Arduino is:
 
@@ -48,15 +49,19 @@ The format of request messages from the iOS app to the Arduino is:
 
 Response messages have the following format:
 
+```
+[ sig ][seq][resp code][data len][ ... data ... ]
+```
+
 * response signature (1 byte)
 * sequence number (1 byte)
 * response code (1 byte) - kResponse* in ```shared_protocol.h```
 * data length (1 byte)
 * optional data (N bytes)
 
-There are two shared header files between the various components:
+There are two header files shared between the iOS app and Arduino sketch:
 
-* ```shared_key.h```: defines the 4-byte shared key between the Arduino sketch and iOS app.  An additional 4-byte partial key is fetched before any control command is sent from the app.
+* ```shared_key.h```: defines the 4-byte shared key. An additional 4-byte partial key is fetched before any control command is sent from the app.
 * ```shared_protocol.h```: defines the 1-byte commands that are sent from the iOS app to the Arduino as well as the various response codes and some misc #defines.
 
 ## Dependencies
@@ -71,10 +76,22 @@ Arduino libraries:
 * [DHT](https://github.com/adafruit/DHT-sensor-library)
 * [EEPROM](https://www.arduino.cc/en/Reference/EEPROM)
 
+## External wiring
+
+To function, the normally open (NO) contacts of the main relay (K1) need to be connected in series between the millivolt output of the thermopile (in the pilot light of the gas furnace) and the solenoid of the gas control valve.
+
+To use the optional smoke alarm silencer, wire the normally closed (NC) contacts of the second relay (K2) in series betwen the smoke alarm and its battery (this will likely involve cutting a trace or power wire in the smoke detector).
+
 ## Usage
 
-Here's a couple of screenshots from the iOS app. After connecting by pressing the bluetooth icon, the dial allows one to change the override temperature (via kCmdSetTargetTemp). Pressing the schedule icon at the bottom opens the weekday/weekend scheduler. Schedules are read using kCmdGetWeekdayTempSchedule/kCmdGetWeekendTempSchedule and updated using kCmdSetWeekdayTempSchedule/kCmdSetWeekendTempSchedule.
+Here's a couple of screenshots from the iOS app:
 
 ![iOS app](thermo_ios_main.png)
 ![iOS app](thermo_ios_schedule.png)
+
+After connecting by pressing the bluetooth icon, the dial allows one to change the override temperature (via kCmdSetTargetTemp). Pressing the schedule icon at the bottom opens the weekday/weekend scheduler. Schedules are read using kCmdGetWeekdayTempSchedule/kCmdGetWeekendTempSchedule and updated using kCmdSetWeekdayTempSchedule/kCmdSetWeekendTempSchedule.
+
+Manually overriding the temperature can also be accomplished by pressing the DOWN or UP SPST switches on the circuit board. 
+
+If using the optional smoke alarm silencer, pressing UP and DOWN at the same time will energize K2 for 5 minutes. No mechanism to silence the smoke alarm is exposed via the BLE interface/iOS app.
 

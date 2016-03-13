@@ -55,11 +55,13 @@
 #define kLCDBlankLine               "                "
 #define kDHTPin                     8
 #define kHeatOnPin                  10
+#define kSmokeDetectorOffPin        9
 #define kButtonUpPin                6
 #define kButtonDownPin              7
 #define kRTC5vPin                   17    // pin 17 (analog pin 3) will be used to provide +5v to the RTC 
 #define kRTCgndPin                  16    // pin 16 (analog pin 2) will be used to provide GND to the RTC
 #define kTempArrayCount             5
+#define kSmokeDetectorOnDelay       (5*kSecondsPerMinute)
 #define kRequestMessageBaseLen      3     // cmd, seq, data len
 #define kRequestMessageMaxDataLen   (20 - kSignatureLength - kRequestMessageBaseLen)  // BLE mini max char write is 20 bytes
 
@@ -132,6 +134,7 @@ static int gScheduleInEffect = 0;        // 0=none, 1..kScheduleOptionCount
 static bool gOverrideTargetTemp = true;  // assume no schedule to start
 static NVRam gMem;
 static bool gPersistEEPROM = false;
+static uint32_t gSmokeDetectorOnTime = 0;
 
 void saveNVRam()
 {  
@@ -221,6 +224,9 @@ void setup()
   pinMode(kHeatOnPin, OUTPUT);
   digitalWrite(kHeatOnPin, HIGH);    // assume OFF initially
   
+  pinMode(kSmokeDetectorOffPin, OUTPUT);
+  digitalWrite(kSmokeDetectorOffPin, HIGH);  // assume OFF initially
+
   pinMode(kButtonUpPin, INPUT_PULLUP);
   pinMode(kButtonDownPin, INPUT_PULLUP);
   
@@ -490,9 +496,16 @@ void timerCallback()
 
   bool changedTemp = false;
   if (buttonDown) {
-    if (gMem.targetTemp > kMinTargetTempF) {
-      gMem.targetTemp -= 1;
-      changedTemp = true;
+    if (buttonUp) {
+      // both down - treat as silence smoke detector
+      log("turning smoke detector OFF for a bit\n");
+      digitalWrite(kSmokeDetectorOffPin, LOW);  // active low == smoke NC on
+      gSmokeDetectorOnTime = gNow.unixtime() + kSmokeDetectorOnDelay;
+    } else {    
+      if (gMem.targetTemp > kMinTargetTempF) {
+        gMem.targetTemp -= 1;
+        changedTemp = true;
+      }
     }
   } else if (buttonUp) {
     if (gMem.targetTemp < kMaxTargetTempF) {
@@ -545,7 +558,14 @@ void loop()
     gNowLock = 1;
     gNow = gRtc.now();
     gNowLock = 0;
-    
+
+    if (gSmokeDetectorOnTime && (gNow.unixtime() > gSmokeDetectorOnTime)) {
+      log("turning smoke detector back ON\n");
+      digitalWrite(kSmokeDetectorOffPin, HIGH);
+      
+      gSmokeDetectorOnTime = 0;
+    }
+
     // also sync to EEPROM if needed
     if (gPersistEEPROM) {
       gPersistEEPROM = false;
