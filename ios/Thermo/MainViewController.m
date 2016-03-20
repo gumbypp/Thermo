@@ -71,6 +71,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
 #define kScanTimeout                15
 #define kConnectTimeout             5
 #define kPollInterval               30
+#define kMaxRetryCount              2
 
 // transport
 #define kErrorDomain                @"ViewController"
@@ -129,6 +130,8 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
 @property (nonatomic, assign) uint32_t keyPart;
 @property (nonatomic, retain) NSMutableArray *transactionQueue;
 @property (nonatomic, assign) RequestState requestState;
+@property (nonatomic, strong) NSData *retryPayload;
+@property (nonatomic, assign) int retryCount;
 @property (nonatomic, copy) CompletionHandler completionHandler;
 @property (nonatomic, assign) int currentTemp;
 @property (nonatomic, assign) int targetTemp;
@@ -357,7 +360,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     
     if (kRequestStateIdle == self.requestState) {
         NSLogDebug(@"sending request immediately: %@", data);
-        [self sendMessageWithPayload:data messageSequenceNumber:self.sequenceNumber withCompletionBlock:completionBlock];
+        [self sendMessageWithPayload:data messageSequenceNumber:self.sequenceNumber retryCount:0 withCompletionBlock:completionBlock];
     } else {
         NSLogDebug(@"queuing request: %@", data);
         [self.transactionQueue addObject:[[Transaction alloc] initWithData:data
@@ -368,6 +371,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
 
 - (void)sendMessageWithPayload:(NSData *)payload
          messageSequenceNumber:(uint8_t)messageSequenceNumber
+                    retryCount:(int)retryCount
            withCompletionBlock:(CompletionHandler)completionBlock
 {
     NSAssert(kRequestStateIdle == self.requestState, @"assert: expect kRequestStateIdle");
@@ -380,6 +384,11 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
         
         self.activeSequenceNumber = messageSequenceNumber;
         self.requestState = kRequestStateSending;
+        if (!retryCount) {
+            // save in case we need to do a retry later
+            self.retryPayload = payload;
+        }
+        self.retryCount = retryCount;
         self.completionHandler = completionBlock;
     }
 }
@@ -392,6 +401,24 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
         NSAssert(NO, @"assert: must have completion handler");
         return;
     }
+
+    // the BLE mini seems to drop incoming chars sometime (kErrorCodeInvalidLength), so let's retry instead of giving up
+    if ([error.domain isEqualToString:kErrorDomain] && (kErrorCodeInvalidLength == error.code) && (self.retryCount < kMaxRetryCount)) {
+        NSLogWarn(@"doing retry, count=%d", self.retryCount);
+        [self sendMessageWithPayload:self.retryPayload
+               messageSequenceNumber:self.activeSequenceNumber
+                          retryCount:++self.retryCount
+                 withCompletionBlock:self.completionHandler];
+        
+        return;
+    }
+    
+#ifdef DEBUG
+//    if (self.retryCount) {
+//        [[[UIAlertView alloc] initWithTitle:nil message:[NSString stringWithFormat:@"completed after %d retry(s)", self.retryCount]
+//                                   delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+//    }
+#endif
     
     // make local copy to handle the case where sendMessageWithPayload is invoked before the completion handler returns
     CompletionHandler ch = self.completionHandler;
@@ -410,6 +437,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
         NSLogDebug(@"starting next transaction");
         [self sendMessageWithPayload:nextTransaction.data
                messageSequenceNumber:nextTransaction.messageSequenceNumber
+                          retryCount:0
                  withCompletionBlock:nextTransaction.completionHandler];
     }
 }
