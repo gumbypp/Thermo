@@ -113,8 +113,11 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
 
 @interface MainViewController () <BLEDelegate, ScheduleViewControllerDelegate>
 
+@property (nonatomic, weak) IBOutlet UILabel *titleLabel;
+@property (nonatomic, weak) IBOutlet UIView *connectView;
 @property (nonatomic, weak) IBOutlet UIButton *btnConnect;
 @property (nonatomic, weak) IBOutlet UIActivityIndicatorView *indConnecting;
+@property (nonatomic, weak) IBOutlet UIButton *btnDisconnect;
 @property (nonatomic, weak) IBOutlet UILabel *currentTempLabel;
 @property (nonatomic, weak) IBOutlet UILabel *humidityLabel;
 @property (nonatomic, weak) IBOutlet UILabel *targetTempLabel;
@@ -187,8 +190,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     [_ble controlSetup];
     _ble.delegate = self;
     
-    [self configureConnectButtonState:kConnectButtonStateConnect showProgress:NO enabled:YES];
-    [self showConnectedControls:NO];
+    [self configureUXWithConnectButtonState:kConnectButtonStateConnect];
     [self resetLabels];
     
     UIPanGestureRecognizer *pgr = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(knobDragging:)];
@@ -200,6 +202,14 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     self.knobView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"dial"]];
     [self.knobContainer addSubview:self.knobView];
     self.lastKnobRotation = 0;
+    
+    // use "small caps" for the title
+    UIFont *systemFont = [UIFont systemFontOfSize:24 weight:UIFontWeightLight];
+    UIFontDescriptor *smallCapsDesc = [systemFont.fontDescriptor fontDescriptorByAddingAttributes:@{ UIFontDescriptorFeatureSettingsAttribute : @[@{
+                                                                                                             UIFontFeatureTypeIdentifierKey: @(37),         // kLowerCaseType
+                                                                                                             UIFontFeatureSelectorIdentifierKey: @(1)}]}];   // kLowerCaseSmallCapsSelector
+    self.titleLabel.font = [UIFont fontWithDescriptor:smallCapsDesc size:24];
+    self.titleLabel.text = @"Thermo";
 }
 
 - (void)viewDidLayoutSubviews
@@ -264,8 +274,30 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     return [NSData dataWithBytes:result length:kSignatureLength];
 }
 
-- (void)configureConnectButtonState:(ConnectButtonState)state showProgress:(BOOL)showProgress enabled:(BOOL)enabled
+- (void)configureUXWithConnectButtonState:(ConnectButtonState)state
 {
+    BOOL connected = NO;
+    BOOL showProgress = NO;
+    switch (state) {
+        case kConnectButtonStateConnect:
+            [self.btnConnect setImage:[UIImage imageNamed:@"ble_start"] forState:UIControlStateNormal];
+            break;
+
+        case kConnectButtonStateAbort:
+            [self.btnConnect setImage:[UIImage imageNamed:@"ble_cancel"] forState:UIControlStateNormal];
+            showProgress = YES;
+            break;
+
+        case kConnectButtonStateDisconnect:
+            connected = YES;
+            break;
+    }
+
+    self.connectView.hidden = connected;
+    self.currentTempLabel.hidden = !connected;
+    self.knobContainer.userInteractionEnabled = connected;
+    self.btnDisconnect.hidden = self.scheduleButton.hidden = !connected;
+    
     if (showProgress) {
         self.indConnecting.hidden = NO;
         [self.indConnecting startAnimating];
@@ -273,28 +305,6 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
         [self.indConnecting stopAnimating];
         self.indConnecting.hidden = YES;
     }
-    
-    [self.btnConnect setEnabled:enabled];
-    switch (state) {
-        default:
-        case kConnectButtonStateConnect:
-            [self.btnConnect setImage:[UIImage imageNamed:@"ble_start"] forState:UIControlStateNormal];
-            break;
-
-        case kConnectButtonStateAbort:
-            [self.btnConnect setImage:[UIImage imageNamed:@"ble_cancel"] forState:UIControlStateNormal];
-            break;
-
-        case kConnectButtonStateDisconnect:
-            [self.btnConnect setImage:[UIImage imageNamed:@"ble_end"] forState:UIControlStateNormal];
-            break;
-    }
-}
-
-- (void)showConnectedControls:(BOOL)connected
-{
-    self.knobContainer.userInteractionEnabled = connected;
-    self.scheduleButton.hidden = !connected;
 }
 
 - (void)connectOrDisconnect
@@ -309,7 +319,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
             [self.ble findBLEPeripheralsWithName:@"Biscuit"];
             
             self.timer = [NSTimer scheduledTimerWithTimeInterval:kScanTimeout target:self selector:@selector(timeout:) userInfo:nil repeats:NO];
-            [self configureConnectButtonState:kConnectButtonStateAbort showProgress:YES enabled:YES];
+            [self configureUXWithConnectButtonState:kConnectButtonStateAbort];
             self.bleState = kBLEStateScanning;
             break;
             
@@ -322,7 +332,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
                 [self.ble disconnectPeripheral:self.ble.connectingPeripheral];
             }
             
-            [self configureConnectButtonState:kConnectButtonStateConnect showProgress:NO enabled:YES];
+            [self configureUXWithConnectButtonState:kConnectButtonStateConnect];
             self.bleState = kBLEStateIdle;
             break;
             
@@ -464,7 +474,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
             }
             
             self.timer = nil;
-            [self configureConnectButtonState:kConnectButtonStateConnect showProgress:NO enabled:YES];
+            [self configureUXWithConnectButtonState:kConnectButtonStateConnect];
             self.bleState = kBLEStateIdle;
             break;
             
@@ -684,6 +694,13 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     [self connectOrDisconnect];
 }
 
+- (IBAction)disconnectPressed:(id)sender
+{
+    NSLogDebug(@"entered");
+    
+    [self connectOrDisconnect];
+}
+
 - (IBAction)schedulePressed:(id)sender
 {
     if (kBLEStateConnected != self.bleState) {
@@ -800,7 +817,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     
     [self.timer invalidate];
     self.timer = [NSTimer scheduledTimerWithTimeInterval:kConnectTimeout target:self selector:@selector(timeout:) userInfo:nil repeats:NO];
-    [self configureConnectButtonState:kConnectButtonStateAbort showProgress:YES enabled:YES];
+    [self configureUXWithConnectButtonState:kConnectButtonStateAbort];
     self.bleState = kBLEStateConnecting;
 }
 
@@ -809,8 +826,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     NSLogDebug(@"entered");
     
     [self.timer invalidate];
-    [self configureConnectButtonState:kConnectButtonStateDisconnect showProgress:NO enabled:YES];
-    [self showConnectedControls:YES];
+    [self configureUXWithConnectButtonState:kConnectButtonStateDisconnect];
 
     self.bleState = kBLEStateConnected;
 
@@ -829,8 +845,7 @@ typedef void (^CompletionHandler)(NSData *responseData, NSError *error);
     
     [self.timer invalidate];
     self.timer = nil;
-    [self configureConnectButtonState:kConnectButtonStateConnect showProgress:NO enabled:YES];
-    [self showConnectedControls:NO];
+    [self configureUXWithConnectButtonState:kConnectButtonStateConnect];
 
     [self resetLabels];
 
