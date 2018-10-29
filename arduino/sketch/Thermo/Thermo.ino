@@ -30,6 +30,20 @@
 #include "shared_key.h"
 #include "shared_protocol.h"
 
+// static asserts:
+// - http://www.pixelbeat.org/programming/gcc/static_assert.html
+// - http://stackoverflow.com/questions/1695759/c-compile-time-assert-with-constant-array
+// - added "(void)ASSERT_CONCAT(assert_line_, __LINE__);" to prevent unused variable gcc warning
+// you will get "array dimension must be larger than zero" if the assertion fails
+
+#define ASSERT_CONCAT_(a, b)    a##b
+#define ASSERT_CONCAT(a, b)     ASSERT_CONCAT_(a, b)
+#define STATIC_ASSERT(expr)     {char ASSERT_CONCAT(assert_line_, __LINE__)[(expr)?1:-1];ASSERT_CONCAT(assert_line_, __LINE__)[0]=0;(void)ASSERT_CONCAT(assert_line_, __LINE__);}
+
+// credit: https://stackoverflow.com/questions/35237503/sizeof-anonymous-nested-struct
+#define sizeof_field(s, m) (sizeof((((s*)0)->m)))
+
+// enable USE_BLE_MINI for BLE comms, disable it to use the serial port for logging (Serial.print)
 #define USE_BLE_MINI
 
 #ifdef USE_BLE_MINI
@@ -50,8 +64,9 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 // application
-#define kEEPROMSize                 64
-#define kEEPROMSignatureLen         16
+#define kConfigEEPROMDataSize       19
+#define kConfigEEPROMSignatureLen   16
+#define kConfigEEPROMSize           (kConfigEEPROMDataSize + kConfigEEPROMSignatureLen)
 #define kLCDBlankLine               "                "
 #define kDHTPin                     8
 #define kHeatOnPin                  10
@@ -94,25 +109,24 @@ typedef enum {
   kSaturday
 };
   
-
 typedef struct {
   uint8_t startTimeQuarterHours[kScheduleOptionCount];   // 0=midnight, 1=12:15, etc
   uint8_t durationQuarterMinutes[kScheduleOptionCount];  // 1=15min, 2=30min, etc
   uint8_t targetTemp[kScheduleOptionCount];              /// deg F
 } Schedule;
-   
+  
+// configuration data stored in EEPROM   
 typedef union {
   struct {
-    uint8_t data[kEEPROMSize];
-    uint8_t checksum[kEEPROMSignatureLen];
-  };
+    uint8_t data[kConfigEEPROMDataSize];
+    uint8_t checksum[kConfigEEPROMSignatureLen];
+  } raw;
   struct {
     uint8_t targetTemp;
     Schedule weekdaySchedule;
-    Schedule weekendSchedule;
-    // the above should be less than kEEPROMSize
-  };
-} NVRam;
+    Schedule weekendSchedule;    
+  } config;  // should be equal to kConfigEEPROMDataSize - see STATIC_ASSERT below
+} Config;
    
 // globals
 static union long_hex gKeyPart;
@@ -132,45 +146,47 @@ static int gInfoCounter = 0;
 static int gLastScheduledTemp = -1;
 static int gScheduleInEffect = 0;        // 0=none, 1..kScheduleOptionCount
 static bool gOverrideTargetTemp = true;  // assume no schedule to start
-static NVRam gMem;
-static bool gPersistEEPROM = false;
+static Config gConfig;
+static bool gPersistConfig = false;
 static uint32_t gSmokeDetectorOnTime = 0;
 
-void saveNVRam()
+void saveConfig()
 {  
-  for (int i=0; i<kEEPROMSize; i++) {
-    EEPROM.write(i, gMem.data[i]);
+  for (int i=0; i<kConfigEEPROMDataSize; i++) {
+    EEPROM.write(i, gConfig.raw.data[i]);
   }
 
-  uint8_t *md5 = make_hash(gMem.data, kEEPROMSize);
-  for (int i=kEEPROMSize; i<(kEEPROMSize + kEEPROMSignatureLen); i++) {
+  uint8_t *md5 = make_hash(gConfig.raw.data, kConfigEEPROMDataSize);
+  for (int i=kConfigEEPROMDataSize; i<(kConfigEEPROMDataSize + kConfigEEPROMSignatureLen); i++) {
     EEPROM.write(i, *md5++);
   }
   
-  log("NVRAM saved\n");
+  log("Config NVRAM saved\n");
 }
 
-bool loadNVRam()
+bool loadConfig()
 {
-  for (int i=0; i<kEEPROMSize; i++) {
-    gMem.data[i] = EEPROM.read(i);
+  STATIC_ASSERT(sizeof_field(Config, config) == kConfigEEPROMDataSize);
+  
+  for (int i=0; i<kConfigEEPROMDataSize; i++) {
+    gConfig.raw.data[i] = EEPROM.read(i);
   }
 
-  uint8_t *md5 = gMem.checksum;
-  for (int i=kEEPROMSize; i<(kEEPROMSize + kEEPROMSignatureLen); i++) {
+  uint8_t *md5 = gConfig.raw.checksum;
+  for (int i=kConfigEEPROMDataSize; i<(kConfigEEPROMDataSize + kConfigEEPROMSignatureLen); i++) {
     *md5++ = EEPROM.read(i);
   }
 
-  md5 = make_hash(gMem.data, kEEPROMSize);
-  if (!memcmp(md5, gMem.checksum, kEEPROMSignatureLen)) {
-    log("NVRAM checksum matched\n");
+  md5 = make_hash(gConfig.raw.data, kConfigEEPROMDataSize);
+  if (!memcmp(md5, gConfig.raw.checksum, kConfigEEPROMSignatureLen)) {
+    log("Config NVRAM checksum matched\n");
   } else {
-    log("NVRAM checksum did not match - loading defaults\n");
+    log("Config NVRAM checksum did not match - loading defaults\n");
     
-    memset(gMem.data, 0, kEEPROMSize);
-    gMem.targetTemp = 70;
+    memset(gConfig.raw.data, 0, kConfigEEPROMDataSize);
+    gConfig.config.targetTemp = 70;
     
-    saveNVRam();
+    saveConfig();
     
     return false;
   }
@@ -273,27 +289,27 @@ void setup()
   gLcd.begin(16, 2);
   
   // read config from EEPROM
-  loadNVRam();
-  if ((gMem.targetTemp < kMinTargetTempF) || (gMem.targetTemp > kMaxTargetTempF)) {
-    gMem.targetTemp = 70;
+  loadConfig();
+  if ((gConfig.config.targetTemp < kMinTargetTempF) || (gConfig.config.targetTemp > kMaxTargetTempF)) {
+    gConfig.config.targetTemp = 70;
   }
 
-  log("gMem.targetTemp: ");
-  log(gMem.targetTemp);
+  log("gConfig.targetTemp: ");
+  log(gConfig.config.targetTemp);
   log("\n");
   
 #ifndef USE_BLE_MINI
   // test
-  gMem.weekdaySchedule.startTimeQuarterHours[0] = 22*4+1;      // 10:15pm
-  gMem.weekdaySchedule.durationQuarterMinutes[0] = 2;
-  gMem.weekdaySchedule.targetTemp[0] = 90;
-  gMem.weekdaySchedule.startTimeQuarterHours[1] = 0;           // midnight
-  gMem.weekdaySchedule.durationQuarterMinutes[1] = 24*4;       // whole day
-  gMem.weekdaySchedule.targetTemp[1] = 60;
+  gConfig.config.weekdaySchedule.startTimeQuarterHours[0] = 22*4+1;      // 10:15pm
+  gConfig.config.weekdaySchedule.durationQuarterMinutes[0] = 2;
+  gConfig.config.weekdaySchedule.targetTemp[0] = 90;
+  gConfig.config.weekdaySchedule.startTimeQuarterHours[1] = 0;           // midnight
+  gConfig.config.weekdaySchedule.durationQuarterMinutes[1] = 24*4;       // whole day
+  gConfig.config.weekdaySchedule.targetTemp[1] = 60;
 #endif  
 
   for (int sched=0; sched<2; sched++) {
-    Schedule *s = (0==sched) ? &gMem.weekdaySchedule : &gMem.weekendSchedule;
+    Schedule *s = (0==sched) ? &gConfig.config.weekdaySchedule : &gConfig.config.weekendSchedule;
     
     for (int i=0; i<kScheduleOptionCount; i++) {
       log((0==sched) ? "weekday schedule " : "weekend schedule ");
@@ -365,7 +381,7 @@ void getFriendlyTime(DateTime *dt, String *s)
 int getScheduledTargetTemp(DateTime *dt, int *scheduleInEffect)
 {
   int dow = dt->dayOfTheWeek();
-  Schedule *s = ((kSaturday == dow) || (kSunday == dow)) ? &gMem.weekendSchedule : &gMem.weekdaySchedule;
+  Schedule *s = ((kSaturday == dow) || (kSunday == dow)) ? &gConfig.config.weekendSchedule : &gConfig.config.weekdaySchedule;
 
   int minPastMidnight = dt->hour()*kMinutesPerHour + dt->minute();
 
@@ -426,7 +442,7 @@ void oneSecondTimer()
     if (scheduledTemp != gLastScheduledTemp) {
       gLastScheduledTemp = scheduledTemp;
       if (gLastScheduledTemp != -1) {
-        gMem.targetTemp = gLastScheduledTemp;
+        gConfig.config.targetTemp = gLastScheduledTemp;
         gOverrideTargetTemp = false;   
       }
     }
@@ -441,7 +457,7 @@ void oneSecondTimer()
   log(" deg F, Avg: ");  
   log(gCurrentTemp);
   log(" deg F, Target: ");
-  log(gMem.targetTemp);
+  log(gConfig.config.targetTemp);
   log(" deg F, Schedule: ");
   log(gScheduleInEffect);
   log(", Override: ");  
@@ -467,7 +483,7 @@ void oneSecondTimer()
   String targetString;  
   if (gInfoCounter < 2) {
     targetString = (gOverrideTargetTemp || !gScheduleInEffect) ? "Manual tmp: " : "Sched tmp: ";
-    targetString += gMem.targetTemp;
+    targetString += gConfig.config.targetTemp;
   } else {
     if (!gNowLock) {      
       getFriendlyTime(&gNow, &targetString);
@@ -479,10 +495,10 @@ void oneSecondTimer()
   gLcd.setCursor(0, 1);  // set the cursor to column 0, line 1
   gLcd.print(targetString);
 
-  if (gCurrentTemp < gMem.targetTemp) {
+  if (gCurrentTemp < gConfig.config.targetTemp) {
     gHeatOn = true;
     digitalWrite(kHeatOnPin, LOW);  // active low == heat on
-  } else if (gCurrentTemp > gMem.targetTemp) {
+  } else if (gCurrentTemp > gConfig.config.targetTemp) {
     gHeatOn = false;
     digitalWrite(kHeatOnPin, HIGH);
   } // else leave at prev state if == target temp
@@ -502,25 +518,25 @@ void timerCallback()
       digitalWrite(kSmokeDetectorOffPin, LOW);  // active low == smoke NC on
       gSmokeDetectorOnTime = gNow.unixtime() + kSmokeDetectorOnDelay;
     } else {    
-      if (gMem.targetTemp > kMinTargetTempF) {
-        gMem.targetTemp -= 1;
+      if (gConfig.config.targetTemp > kMinTargetTempF) {
+        gConfig.config.targetTemp -= 1;
         changedTemp = true;
       }
     }
   } else if (buttonUp) {
-    if (gMem.targetTemp < kMaxTargetTempF) {
-      gMem.targetTemp += 1;
+    if (gConfig.config.targetTemp < kMaxTargetTempF) {
+      gConfig.config.targetTemp += 1;
       changedTemp = true;
     }
   }  
 
   if (changedTemp) {
-    gPersistEEPROM = true;       // target temp modified
+    gPersistConfig = true;       // target temp modified
     
     gInfoCounter = 0;            // display target temp while editing
     String targetString;  
     targetString = "Manual tmp: ";
-    targetString += gMem.targetTemp;
+    targetString += gConfig.config.targetTemp;
     
     gLcd.setCursor(0, 1);
     gLcd.print(kLCDBlankLine);
@@ -567,9 +583,9 @@ void loop()
     }
 
     // also sync to EEPROM if needed
-    if (gPersistEEPROM) {
-      gPersistEEPROM = false;
-      saveNVRam();
+    if (gPersistConfig) {
+      gPersistConfig = false;
+      saveConfig();
     }
     
     firstPass = false;
@@ -650,7 +666,7 @@ void loop()
     
             ble_write(gHumidity);
     
-            u.unsign = gMem.targetTemp;
+            u.unsign = gConfig.config.targetTemp;
             ble_write(u.byte.high);                 
             ble_write(u.byte.low);         
     
@@ -662,7 +678,7 @@ void loop()
           case kCmdSetTargetTemp: {
             bool success = false;
             if (signature_matched) {
-              gMem.targetTemp = (int)*p++;          
+              gConfig.config.targetTemp = (int)*p++;          
               
               // override until the schedule kicks in
               gOverrideTargetTemp = true;  
@@ -671,7 +687,7 @@ void loop()
               gKeyPart.lunsign = 0;
               success = true;
     
-              gPersistEEPROM = true;  // target temp modified
+              gPersistConfig = true;  // target temp modified
             }        
             
             ble_write(kResponseSignature);
@@ -716,7 +732,7 @@ void loop()
             ble_write(kResponseOK);           
             ble_write(9);  // data length
     
-            Schedule *s = forWeekdaySchedule ? &gMem.weekdaySchedule : &gMem.weekendSchedule; 
+            Schedule *s = forWeekdaySchedule ? &gConfig.config.weekdaySchedule : &gConfig.config.weekendSchedule; 
             for (int i=0; i<kScheduleOptionCount; i++) {
               ble_write(s->startTimeQuarterHours[i]);
               ble_write(s->durationQuarterMinutes[i]);
@@ -732,7 +748,7 @@ void loop()
             bool success = false;
             if (signature_matched) {
               gScheduleLock = 1;
-              Schedule *s = forWeekdaySchedule ? &gMem.weekdaySchedule : &gMem.weekendSchedule; 
+              Schedule *s = forWeekdaySchedule ? &gConfig.config.weekdaySchedule : &gConfig.config.weekendSchedule; 
               for (int i=0; i<kScheduleOptionCount; i++) {
                 s->startTimeQuarterHours[i] = *p++;
                 s->durationQuarterMinutes[i] = *p++;
@@ -744,7 +760,7 @@ void loop()
               gKeyPart.lunsign = 0;
               success = true;
               
-              gPersistEEPROM = true;  // schedule modified
+              gPersistConfig = true;  // schedule modified
             }
     
             ble_write(kResponseSignature);
