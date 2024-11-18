@@ -96,12 +96,14 @@ typedef NS_ENUM(NSInteger, TableSection)
 @property (nonatomic, weak) IBOutlet UIButton *doneButton;
 @property (nonatomic, weak) IBOutlet UITableView *tableView;
 
-@property (nonatomic, assign) BOOL somethingChanged;
+@property (nonatomic, assign) BOOL updateFromTextField;
+@property (nonatomic, assign) BOOL scheduleChanged;
 @property (nonatomic, strong) NSMutableArray *weekdaySchedules;
 @property (nonatomic, strong) NSMutableArray *weekendSchedules;
 @property (nonatomic, weak) NSMutableArray *currentSchedules;
 @property (nonatomic, strong) NSArray *scheduleColours;
 @property (nonatomic, strong) UIDatePicker *datePicker;
+@property (nonatomic, strong) UIToolbar *inputAccessoryToolbar;
 @property (nonatomic, weak) UITextField *textFieldWithVisibleKeyboard;
 
 @end
@@ -112,14 +114,23 @@ typedef NS_ENUM(NSInteger, TableSection)
 {
     [super viewDidLoad];
     
-    self.datePicker = [[UIDatePicker alloc] initWithFrame:CGRectZero];
+    self.datePicker = [[UIDatePicker alloc] init];
     self.datePicker.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
-    [self.datePicker addTarget:self action:@selector(dateChanged:) forControlEvents:UIControlEventValueChanged];
     self.datePicker.datePickerMode = UIDatePickerModeTime;
-    self.datePicker.backgroundColor = [UIColor whiteColor];
-    self.datePicker.opaque = YES;
-    [self.datePicker sizeThatFits:CGSizeZero];
+    [self.datePicker setPreferredDatePickerStyle:UIDatePickerStyleWheels];
 
+    // Create a toolbar for the "Done" button
+    self.inputAccessoryToolbar = [[UIToolbar alloc] init];
+    [self.inputAccessoryToolbar sizeToFit];
+    
+    UIBarButtonItem *bbiDone = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItemDone
+                                                                             target:self action:@selector(inputAccessoryDonePressed:)];
+    UIBarButtonItem *bbiSpacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItemFlexibleSpace
+                                                                               target:nil action:nil];
+    UIBarButtonItem *bbiCancel = [[UIBarButtonItem alloc] initWithBarButtonSystemItem: UIBarButtonSystemItemCancel
+                                                                               target:self action:@selector(inputAccessoryCancelPressed:)];
+    [self.inputAccessoryToolbar setItems:@[bbiCancel, bbiSpacer, bbiDone]];
+    
     uint8_t *weekdayBytes = (uint8_t *)[self.rawWeekdaySchedule bytes];
     uint8_t *weekendBytes = (uint8_t *)[self.rawWeekendSchedule bytes];
     
@@ -224,41 +235,20 @@ typedef NS_ENUM(NSInteger, TableSection)
 
 - (void)segmentControlChanged:(UISegmentedControl *)sender
 {
-    // hide picker if showing
-    if (self.datePicker.superview) {
-        [self.datePicker removeFromSuperview];
-    }
-    
     self.currentSchedules = sender.selectedSegmentIndex ? self.weekendSchedules : self.weekdaySchedules;
     [self.tableView reloadData];
 }
 
-- (void)dateChanged:(UIDatePicker *)sender
+- (void)inputAccessoryCancelPressed:(id)sender
 {
-    NSInteger textFieldTag = sender.tag & ~kDatePickerTagBit;
-    UITextField *textField = [self.view viewWithTag:textFieldTag];
-    time_t secondsPastMidnight = (time_t)[sender.date timeIntervalSinceReferenceDate] % kSecondsPerDay;
-    textField.text = [self friendlyTimeFromSecondsPastMidnight:secondsPastMidnight];
+    self.updateFromTextField = NO;
+    [self.textFieldWithVisibleKeyboard resignFirstResponder];
+}
 
-    int index = (int)TAG_TO_INDEX(textFieldTag);
-    EditTypeTag editType = TAG_TO_EDIT_TYPE(textFieldTag);
-    
-    OneSchedule *s = self.currentSchedules[index];
-    if (kEditTypeTagEndTime == editType) {
-        s.duration = secondsPastMidnight - s.startTimePastMidnight;
-    } else {
-        NSAssert(kEditTypeTagStartTime == editType, @"expect kEditTypeTagStartTime here");
-        time_t durationDelta = s.startTimePastMidnight - secondsPastMidnight;
-        s.startTimePastMidnight = secondsPastMidnight;
-        s.duration += durationDelta;
-    }
-    
-    if (!s.duration) {
-        // start_time==end_time
-        s.duration = kSecondsPerDay;
-    }
-    
-    self.somethingChanged = YES;
+- (void)inputAccessoryDonePressed:(id)sender
+{
+    self.updateFromTextField = YES;
+    [self.textFieldWithVisibleKeyboard resignFirstResponder];
 }
 
 - (IBAction)cancelPressed:(id)sender
@@ -269,7 +259,7 @@ typedef NS_ENUM(NSInteger, TableSection)
 
 - (IBAction)donePressed:(id)sender
 {
-    if (!self.somethingChanged) {
+    if (!self.scheduleChanged) {
         [self cancelPressed:nil];
         return;
     }
@@ -367,15 +357,20 @@ typedef NS_ENUM(NSInteger, TableSection)
             
             cell.startTimeTextField.text = [self friendlyTimeFromSecondsPastMidnight:s.startTimePastMidnight];
             cell.startTimeTextField.tag = INDEX_TO_TAG(index) | EDIT_TYPE_TO_TAG(kEditTypeTagStartTime);
+            cell.startTimeTextField.inputView = self.datePicker;
+            cell.startTimeTextField.inputAccessoryView = self.inputAccessoryToolbar;
             cell.startTimeTextField.delegate = self;
             
             cell.endTimeTextField.text = [self friendlyTimeFromSecondsPastMidnight:endTimePastMidnight];
             cell.endTimeTextField.tag = INDEX_TO_TAG(index) | EDIT_TYPE_TO_TAG(kEditTypeTagEndTime);
+            cell.endTimeTextField.inputView = self.datePicker;
+            cell.endTimeTextField.inputAccessoryView = self.inputAccessoryToolbar;
             cell.endTimeTextField.delegate = self;
             
             cell.temperatureTextField.text = [NSString stringWithFormat:@"%d °F", s.targetTempF];
             cell.temperatureTextField.tag = INDEX_TO_TAG(index) | EDIT_TYPE_TO_TAG(kEditTypeTagTemp);
             cell.temperatureTextField.keyboardType = UIKeyboardTypeNumberPad;
+            cell.temperatureTextField.inputAccessoryView = self.inputAccessoryToolbar;
             cell.temperatureTextField.delegate = self;
             
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -411,49 +406,29 @@ typedef NS_ENUM(NSInteger, TableSection)
             
             [self.datePicker setDate:[self referenceDateForHour:hours minute:minutes]];
             self.datePicker.minuteInterval = 15;
-            
-            CGRect f = self.datePicker.frame;
-            f.origin.y = self.view.frame.size.height;
-            self.datePicker.frame = f;
-            
-            [self.view addSubview:self.datePicker];
-            [UIView animateWithDuration:0.25 animations:^{
-                CGRect f = self.datePicker.frame;
-                f.origin.y = self.view.frame.size.height - f.size.height;
-                self.datePicker.frame = f;
-            }];
-            
-            // hide keyboard of a previous text field that has one showing
-            [self.textFieldWithVisibleKeyboard resignFirstResponder];
-            
-            return NO;
+            break;
         }
 
         case kEditTypeTagTemp: {
             // remove units
             textField.text = [@([textField.text intValue]) stringValue];
-            
-            // gonna show the keyboard, so hide the date picker (if showing)
-            if (self.datePicker.superview) {
-                [self.datePicker removeFromSuperview];
-            }
-
-            // cannot exit while editing temps (with uncommitted values)
-            self.doneButton.enabled = NO;
-            self.segmentControl.enabled = NO;
-            self.textFieldWithVisibleKeyboard = textField;
             break;
         }
     }
-    
-    // use normal keyboard
+
+    // hide keyboard of a previous text field that has one showing
+    [self.textFieldWithVisibleKeyboard resignFirstResponder];
+    self.textFieldWithVisibleKeyboard = textField;
+
+    // cannot exit while editing (with uncommitted values)
+    self.doneButton.enabled = NO;
+    self.segmentControl.enabled = NO;
+
     return YES;
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    NSAssert(TAG_TO_EDIT_TYPE(textField.tag) == kEditTypeTagTemp, @"only expect kEditTypeTagTemp here");
-
     [textField resignFirstResponder];
     
     return YES;
@@ -461,22 +436,52 @@ typedef NS_ENUM(NSInteger, TableSection)
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
 {
-    NSAssert(TAG_TO_EDIT_TYPE(textField.tag) == kEditTypeTagTemp, @"only expect kEditTypeTagTemp here");
+    if (!self.updateFromTextField) {
+        self.doneButton.enabled = YES;
+        self.segmentControl.enabled = YES;
+        self.textFieldWithVisibleKeyboard = nil;
 
-    int newTargetTemp = [textField.text intValue];
-    newTargetTemp = MIN(MAX(newTargetTemp, kMinTargetTempF), kMaxTargetTempF);
+        return;
+    }
     
-    textField.text = [NSString stringWithFormat:@"%d °F", newTargetTemp];
-
-    int index = (int)TAG_TO_INDEX(textField.tag);
-    OneSchedule *s = self.currentSchedules[index];
-    s.targetTempF = newTargetTemp;
+    if (TAG_TO_EDIT_TYPE(textField.tag) != kEditTypeTagTemp) {
+        time_t secondsPastMidnight = (time_t)[self.datePicker.date timeIntervalSinceReferenceDate] % kSecondsPerDay;
+        textField.text = [self friendlyTimeFromSecondsPastMidnight:secondsPastMidnight];
+        
+        NSInteger textFieldTag = textField.tag & ~kDatePickerTagBit;
+        int index = (int)TAG_TO_INDEX(textFieldTag);
+        EditTypeTag editType = TAG_TO_EDIT_TYPE(textFieldTag);
+        
+        OneSchedule *s = self.currentSchedules[index];
+        if (kEditTypeTagEndTime == editType) {
+            s.duration = secondsPastMidnight - s.startTimePastMidnight;
+        } else {
+            NSAssert(kEditTypeTagStartTime == editType, @"expect kEditTypeTagStartTime here");
+            time_t durationDelta = s.startTimePastMidnight - secondsPastMidnight;
+            s.startTimePastMidnight = secondsPastMidnight;
+            s.duration += durationDelta;
+        }
+        
+        if (!s.duration) {
+            // start_time==end_time
+            s.duration = kSecondsPerDay;
+        }
+    } else {
+        int newTargetTemp = [textField.text intValue];
+        newTargetTemp = MIN(MAX(newTargetTemp, kMinTargetTempF), kMaxTargetTempF);
+        
+        textField.text = [NSString stringWithFormat:@"%d °F", newTargetTemp];
+        
+        int index = (int)TAG_TO_INDEX(textField.tag);
+        OneSchedule *s = self.currentSchedules[index];
+        s.targetTempF = newTargetTemp;
+    }
 
     self.doneButton.enabled = YES;
     self.segmentControl.enabled = YES;
     self.textFieldWithVisibleKeyboard = nil;
     
-    self.somethingChanged = YES;
+    self.scheduleChanged = YES;
     [self.tableView reloadData];    // update the graph
 }
 
